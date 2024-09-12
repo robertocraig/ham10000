@@ -287,7 +287,19 @@ def data_load(dataset, batch_size=32, shuffle=True, test_size=0.2, num_workers=4
     test_dataset = torch.utils.data.Subset(dataset, test_indices)
     
     # Create DataLoaders for both training and test datasets
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
-    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
+    train_loader = DataLoader(
+      train_dataset, 
+      batch_size=batch_size, 
+      shuffle=shuffle, 
+      num_workers=num_workers,
+      persistent_workers=True,  # Mantém os mesmos workers entre as épocas
+      pin_memory=True)  # Recomendado se você estiver utilizando uma GPU
+    test_loader = DataLoader(
+      test_dataset, 
+      batch_size=batch_size, 
+      shuffle=False, 
+      num_workers=num_workers,
+      persistent_workers=True,  # Mantém os mesmos workers entre as épocas
+      pin_memory=True)  # Recomendado se você estiver utilizando uma GPU
     
     return train_loader, test_loader
