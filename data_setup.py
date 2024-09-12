@@ -252,3 +252,39 @@ class SkinDataset(Dataset):
       """
       augmented_transform = transforms.Compose([self.transform, augmentations]) if self.transform else augmentations
       return SkinDataset(csv_file=self.data_frame.copy(), img_dir=self.img_dir, transform=augmented_transform)
+
+
+import os
+import multiprocessing
+
+# Get the number of CPU cores
+num_workers = multiprocessing.cpu_count()
+
+def data_load(dataset, batch_size=32, shuffle=True, test_size=0.2, num_workers=4):
+    """
+    Loads train and test data using PyTorch's DataLoader.
+    
+    Args:
+        dataset (Dataset): The dataset to load.
+        batch_size (int, optional): Number of samples per batch to load. Default is 32.
+        shuffle (bool, optional): Whether to shuffle the training data at every epoch. Default is True.
+        test_size (float, optional): Proportion of the dataset to include in the test split. Default is 0.2.
+        num_workers (int, optional): Number of subprocesses to use for data loading. Default is 4.
+    
+    Returns:
+        tuple: A tuple containing the DataLoader for the training data and the DataLoader for the test data.
+    """
+    # Split the dataset into training and testing sets
+    train_indices, test_indices = train_test_split(
+        range(len(dataset)), test_size=test_size, shuffle=shuffle
+    )
+    
+    # Subset the dataset based on train and test indices
+    train_dataset = torch.utils.data.Subset(dataset, train_indices)
+    test_dataset = torch.utils.data.Subset(dataset, test_indices)
+    
+    # Create DataLoaders for both training and test datasets
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
+    
+    return train_loader, test_loader
