@@ -85,6 +85,9 @@ class SkinDataset(Dataset):
       # Apply any transformations if provided
       if self.transform:
         image = self.transform(image)
+      else:
+        # Caso transform seja None, converte manualmente para tensor
+        image = transforms.ToTensor()(image)
 
       # Converts image back to PIL image
       #if isinstance(image, torch.Tensor):
