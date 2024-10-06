@@ -263,43 +263,64 @@ import multiprocessing
 # Get the number of CPU cores
 num_workers = multiprocessing.cpu_count()
 
-def data_load(dataset, batch_size=32, shuffle=True, test_size=0.2, num_workers=4):
+def data_load(dataset, batch_size=32, shuffle=True, val_size=0.2, test_size=0.1, num_workers=4):
     """
-    Loads train and test data using PyTorch's DataLoader.
+    Loads train, val, and test data using PyTorch's DataLoader.
     
     Args:
         dataset (Dataset): The dataset to load.
         batch_size (int, optional): Number of samples per batch to load. Default is 32.
         shuffle (bool, optional): Whether to shuffle the training data at every epoch. Default is True.
-        test_size (float, optional): Proportion of the dataset to include in the test split. Default is 0.2.
+        val_size (float, optional): Proportion of the dataset to include in the validation split. Default is 0.2.
+        test_size (float, optional): Proportion of the dataset to include in the test split. Default is 0.1.
         num_workers (int, optional): Number of subprocesses to use for data loading. Default is 4.
     
     Returns:
-        tuple: A tuple containing the DataLoader for the training data and the DataLoader for the test data.
+        tuple: A tuple containing the DataLoader for the training, validation, and test data.
     """
-    # Split the dataset into training and testing sets
-    train_indices, test_indices = train_test_split(
-        range(len(dataset)), test_size=test_size, shuffle=shuffle
+    # Calculate split sizes
+    total_size = len(dataset)
+    test_split = int(test_size * total_size)
+    val_split = int(val_size * total_size)
+    train_split = total_size - test_split - val_split
+
+    # Split the dataset into training, validation, and testing sets
+    train_indices, val_indices, test_indices = torch.utils.data.random_split(
+        range(total_size),
+        [train_split, val_split, test_split]
     )
     
-    # Subset the dataset based on train and test indices
+    # Subset the dataset based on train, val, and test indices
     train_dataset = torch.utils.data.Subset(dataset, train_indices)
+    val_dataset = torch.utils.data.Subset(dataset, val_indices)
     test_dataset = torch.utils.data.Subset(dataset, test_indices)
     
-    # Create DataLoaders for both training and test datasets
+    # Create DataLoaders for train, val, and test datasets
     train_loader = DataLoader(
-      train_dataset, 
-      batch_size=batch_size, 
-      shuffle=shuffle, 
-      num_workers=num_workers,
-      persistent_workers=True,  # Mantém os mesmos workers entre as épocas
-      pin_memory=True)  # Recomendado se você estiver utilizando uma GPU
-    test_loader = DataLoader(
-      test_dataset, 
-      batch_size=batch_size, 
-      shuffle=False, 
-      num_workers=num_workers,
-      persistent_workers=True,  # Mantém os mesmos workers entre as épocas
-      pin_memory=True)  # Recomendado se você estiver utilizando uma GPU
+        train_dataset, 
+        batch_size=batch_size, 
+        shuffle=shuffle, 
+        num_workers=num_workers,
+        persistent_workers=True,
+        pin_memory=True
+    )
     
-    return train_loader, test_loader
+    val_loader = DataLoader(
+        val_dataset, 
+        batch_size=batch_size, 
+        shuffle=False, 
+        num_workers=num_workers,
+        persistent_workers=True,
+        pin_memory=True
+    )
+
+    test_loader = DataLoader(
+        test_dataset, 
+        batch_size=batch_size, 
+        shuffle=False, 
+        num_workers=num_workers,
+        persistent_workers=True,
+        pin_memory=True
+    )
+    
+    return train_loader, val_loader, test_loader
