@@ -1,19 +1,20 @@
-import torchvision.models as models
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
 from torchmetrics.classification import BinaryAccuracy
+from torchvision.models import vit_b_16
 
-class ViTLarge(pl.LightningModule):
+class ViTLightning(pl.LightningModule):
     def __init__(self, num_classes=2, learning_rate=1e-3):
-        super(ViTLarge, self).__init__()
+        super(ViTLightning, self).__init__()
         self.save_hyperparameters()
 
-        # Carregar o modelo ViT pré-treinado
-        self.model = models.vit_l_16(pretrained=True)
+        # Modelo ViT pré-treinado
+        self.model = vit_b_16(pretrained=True)
 
-        # Alterar a camada final para ter 1 saída (binária)
-        self.model.heads = nn.Linear(self.model.heads.in_features, 1)
+        # Alterar para uso em classificação binária
+        # O ViT usa uma camada `head` em vez de `fc`
+        self.model.heads.head = nn.Linear(self.model.heads.head.in_features, 1)  # Saída única para classificação binária
 
         # Função de perda para classificação binária
         self.loss_fn = nn.BCEWithLogitsLoss()
@@ -31,10 +32,10 @@ class ViTLarge(pl.LightningModule):
         outputs = self(images).squeeze(1)  # Garante que a saída seja um vetor de previsões
 
         # Calcular a perda com BCEWithLogitsLoss
-        loss = self.loss_fn(outputs, labels.float())  # BCEWithLogitsLoss espera rótulos float
+        loss = self.loss_fn(outputs, labels.float())
 
         # Converter as probabilidades para rótulos binários
-        preds = torch.sigmoid(outputs) >= 0.5  # Limiar de 0.5 para classificação binária
+        preds = torch.sigmoid(outputs) >= 0.5
 
         # Calcular a acurácia no treinamento
         acc = self.train_accuracy(preds.int(), labels.int())
