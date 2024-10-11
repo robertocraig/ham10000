@@ -80,4 +80,21 @@ class ResNetLightning(pl.LightningModule):
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.hparams.learning_rate)
-        return optimizer
+        
+        # Add the ReduceLROnPlateau scheduler
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+            optimizer, 
+            mode='min',  # We want to reduce the LR when validation loss decreases
+            factor=0.1,  # Reduce the LR by a factor of 0.1
+            patience=3,  # Number of epochs with no improvement after which learning rate will be reduced
+            verbose=True  # Print a message when the LR is reduced
+        )
+
+        # Return the optimizer and scheduler. Monitor 'val_loss' for the scheduler
+        return {
+            'optimizer': optimizer,
+            'lr_scheduler': {
+                'scheduler': scheduler,
+                'monitor': 'val_loss'  # Monitor the validation loss for LR reduction
+            }
+        }
