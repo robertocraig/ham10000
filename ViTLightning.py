@@ -49,5 +49,38 @@ class ViTLightning(pl.LightningModule):
         images, labels = batch['image'], batch['numeric_label']
         outputs = self(images).squeeze(1)
 
-        # 
+        # Calcular a perda
+        loss = self.loss_fn(outputs, labels.float())
+
+        # Converter as probabilidades para rótulos binários
+        preds = torch.sigmoid(outputs) >= 0.5
+
+        # Calcular a acurácia na validação
+        acc = self.val_accuracy(preds.int(), labels.int())
+
+        self.log('val_loss', loss, on_step=False, on_epoch=True, prog_bar=True)
+        self.log('val_acc', acc, on_step=False, on_epoch=True, prog_bar=True)
+
+        return loss
+
+    def test_step(self, batch, batch_idx):
+        images, labels = batch['image'], batch['numeric_label']
+        outputs = self(images).squeeze(1)
+
+        # Calcular a perda
+        loss = self.loss_fn(outputs, labels.float())
+
+        # Converter as probabilidades para rótulos binários
+        preds = torch.sigmoid(outputs) >= 0.5
+
+        # Calcular a acurácia no teste
+        acc = self.test_accuracy(preds.int(), labels.int())
+
+        self.log('test_loss', loss, on_step=False, on_epoch=True, prog_bar=True)
+        self.log('test_acc', acc, on_step=False, on_epoch=True, prog_bar=True)
+
+    def configure_optimizers(self):
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.hparams.learning_rate)
+        return optimizer
+
 
