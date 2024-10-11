@@ -4,9 +4,9 @@ import torch.nn as nn
 from torchmetrics.classification import BinaryAccuracy
 from torchvision.models import vit_b_16
 
-class ViTLightning(pl.LightningModule):
+class VitLarge(pl.LightningModule):
     def __init__(self, num_classes=2, learning_rate=1e-3):
-        super(ViTLightning, self).__init__()
+        super(VitLarge, self).__init__()
         self.save_hyperparameters()
 
         # Modelo ViT pré-treinado
