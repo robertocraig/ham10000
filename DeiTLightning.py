@@ -1,7 +1,7 @@
+import timm
 import torch
 import torch.nn as nn
 import pytorch_lightning as pl
-from torchvision.models import deit_tiny_patch16_224
 from torchmetrics.classification import BinaryAccuracy
 
 class DeiTLightning(pl.LightningModule):
@@ -9,8 +9,8 @@ class DeiTLightning(pl.LightningModule):
         super(DeiTLightning, self).__init__()
         self.save_hyperparameters()
 
-        # Carregar o DeiT pré-treinado
-        self.model = deit_tiny_patch16_224(pretrained=True)
+        # Carregar o modelo DeiT da biblioteca timm
+        self.model = timm.create_model('deit_tiny_patch16_224', pretrained=True, num_classes=num_classes)
 
         # Ajustar a cabeça do DeiT para classificação binária
         self.model.head = nn.Linear(self.model.head.in_features, 1)  # Classificação binária (1 saída)
