@@ -243,6 +243,47 @@ class SkinDataset(Dataset):
       plt.tight_layout()
       plt.show()
 
+    def visualize_by_lesion_id(self, lesion_id):
+      """
+      Displays the original image and metadata for a given lesion_id.
+
+      Args:
+        lesion_id (str): Lesion ID of the image to visualize.
+
+      Raises:
+        ValueError: If the lesion_id is not found in the dataset.
+      """
+      # Verificar se o lesion_id existe no DataFrame
+      lesion_row = self.data_frame[self.data_frame['lesion_id'] == lesion_id]
+    
+      if lesion_row.empty:
+        raise ValueError(f"Lesion ID {lesion_id} not found in the dataset.")
+    
+      # Pegar o índice da primeira ocorrência do lesion_id
+      index = lesion_row.index[0]
+    
+      # Obter o caminho original da imagem
+      img_path = lesion_row.iloc[0]['image_path']
+    
+      # Carregar a imagem original diretamente do arquivo
+      original_image = Image.open(img_path)
+
+      # Obter as demais informações (rótulo, metadata) para exibição
+      full_label = self.label_mapping[lesion_row.iloc[0]['dx']]['name']
+      metadata = {
+        'age': lesion_row.iloc[0]['age'],
+        'sex': lesion_row.iloc[0]['sex'],
+        'localization': lesion_row.iloc[0]['localization']
+      }
+
+      # Exibir a imagem original
+      plt.figure(figsize=(8, 6))  # Configura o tamanho da figura
+      plt.title(f"Original Image - Lesion ID: {lesion_id}\nLabel: {full_label}\nAge: {metadata['age']} | Sex: {metadata['sex']} | Localization: {metadata['localization']}", fontsize=12)
+      plt.imshow(original_image)
+      plt.axis('off')  # Ocultar eixos
+      plt.tight_layout()
+      plt.show()
+    
     def augment_data(self, augmentations):
       """
       Applies data augmentation techniques to the dataset.
