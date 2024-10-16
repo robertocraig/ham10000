@@ -108,7 +108,7 @@ class SkinDataset(Dataset):
       }
 
       # Return a dictionary containing the image, its label, and metadata
-      return {'image': image, 'label': label, 'full_label': full_label, 'numeric_label': numeric_label, 'metadata': metadata}
+      return {'image': image, 'label': label, 'full_label': full_label, 'numeric_label': numeric_label, 'metadata': metadata, 'index': index}
 
     def get_labels(self):
         """
