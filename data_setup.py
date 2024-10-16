@@ -237,7 +237,7 @@ class SkinDataset(Dataset):
         image = transforms.ToPILImage()(image)
 
       plt.figure(figsize=(8, 6))  # Width, height in inches
-      plt.title(f"Label: {sample['full_label']}\nAge: {sample['metadata']['age']} | Sex: {sample['metadata']['sex']} | Localization: {sample['metadata']['localization']}", fontsize=12)
+      plt.title(f"Label: {sample['full_label']}\nAge: {sample['metadata']['age']} | Sex: {sample['metadata']['sex']} | Localization: {sample['metadata']['localization']} | Index: {index}", fontsize=12)
       plt.imshow(image)
       plt.axis('off')  # Hide axes
       plt.tight_layout()
