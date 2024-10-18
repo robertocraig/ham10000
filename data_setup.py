@@ -365,3 +365,44 @@ def data_load(dataset, batch_size=32, shuffle=True, val_size=0.2, test_size=0.1,
     )
     
     return train_loader, val_loader, test_loader
+
+from sklearn.model_selection import StratifiedShuffleSplit
+
+def stratified_data_load(dataset, labels, batch_size=32, shuffle=True, val_size=0.2, test_size=0.1, num_workers=4):
+    """
+    Loads train, val, and test data using PyTorch's DataLoader with stratified splits.
+    
+    Args:
+        dataset (Dataset): The dataset to load.
+        labels (array-like): Labels for the dataset to stratify by.
+        batch_size (int, optional): Number of samples per batch to load. Default is 32.
+        shuffle (bool, optional): Whether to shuffle the training data at every epoch. Default is True.
+        val_size (float, optional): Proportion of the dataset to include in the validation split. Default is 0.2.
+        test_size (float, optional): Proportion of the dataset to include in the test split. Default is 0.1.
+        num_workers (int, optional): Number of subprocesses to use for data loading. Default is 4.
+    
+    Returns:
+        tuple: A tuple containing the DataLoader for the training, validation, and test data.
+    """
+    total_size = len(dataset)
+    test_val_size = val_size + test_size
+
+    # Perform stratified split for train and test/val
+    stratified_split = StratifiedShuffleSplit(n_splits=1, test_size=test_val_size, random_state=42)
+    train_idx, test_val_idx = next(stratified_split.split(range(total_size), labels))
+
+    # Perform another stratified split for validation and test from the test/val set
+    stratified_split_val_test = StratifiedShuffleSplit(n_splits=1, test_size=test_size / test_val_size, random_state=42)
+    val_idx, test_idx = next(stratified_split_val_test.split(test_val_idx, labels[test_val_idx]))
+
+    # Subset the dataset
+    train_dataset = torch.utils.data.Subset(dataset, train_idx)
+    val_dataset = torch.utils.data.Subset(dataset, val_idx)
+    test_dataset = torch.utils.data.Subset(dataset, test_idx)
+
+    # Create DataLoaders
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers, persistent_workers=True, pin_memory=True)
+    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, persistent_workers=True, pin_memory=True)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, persistent_workers=True, pin_memory=True)
+    
+    return train_loader, val_loader, test_loader
