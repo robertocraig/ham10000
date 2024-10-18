@@ -391,6 +391,9 @@ def stratified_data_load(dataset, labels, batch_size=32, shuffle=True, val_size=
     stratified_split = StratifiedShuffleSplit(n_splits=1, test_size=test_val_size, random_state=42)
     train_idx, test_val_idx = next(stratified_split.split(range(total_size), labels))
 
+    # Transformar test_val_idx em array
+    test_val_idx = np.array(test_val_idx)
+
     # Perform another stratified split for validation and test from the test/val set
     stratified_split_val_test = StratifiedShuffleSplit(n_splits=1, test_size=test_size / test_val_size, random_state=42)
     val_idx, test_idx = next(stratified_split_val_test.split(test_val_idx, labels[test_val_idx]))
