@@ -15,7 +15,7 @@ path = '/content/drive/MyDrive/PUCRS/Ap Profundo 2/HAM10000/skin_df.csv'
 img_dir = '/content/drive/MyDrive/PUCRS/Ap Profundo 2/HAM10000/zip/all_images'
 
 class SkinDataset(Dataset):
-    def __init__(self, csv_file, img_dir, transform=None):
+    def __init__(self, csv_file, img_dir, transform=None,  include_numerical_features=True):
         """
         Initializes the SkinDataset.
 
@@ -36,6 +36,7 @@ class SkinDataset(Dataset):
 
         self.img_dir = img_dir
         self.transform = transform
+        self.include_numerical_features = include_numerical_features
 
         # Mapping from short labels to full names and to numeric labels
         self.label_mapping = {
@@ -115,19 +116,29 @@ class SkinDataset(Dataset):
                              'Zernike_17', 'Zernike_18', 'Zernike_19', 'Zernike_20', 'Zernike_21',
                              'Zernike_22', 'Zernike_23', 'Zernike_24', 'compacidade']
         
-      numerical_features = self.data_frame.iloc[index][numerical_columns].values.astype(np.float32)
-      numerical_features = torch.tensor(numerical_features)
+      
+      # Obter as características numéricas, se necessário
+      if self.include_numerical_features:
+            numerical_features = self.data_frame.iloc[index][self.numerical_columns].values.astype(np.float32)
+            numerical_features = torch.tensor(numerical_features)
+      else:
+            numerical_features = None  # Ou simplesmente não incluí-lo no dicionário
 
-      # Retornar o dicionário com imagem, características numéricas e demais informações
-      return {
+      # Criar o dicionário de retorno
+      sample = {
             'image': image,
-            'numerical_features': numerical_features,
             'label': label,
             'full_label': full_label,
             'numeric_label': numeric_label,
             'metadata': metadata,
             'index': index
         }
+
+      if self.include_numerical_features:
+            sample['numerical_features'] = numerical_features
+
+      return sample
+         
 
     def get_labels(self):
         """
