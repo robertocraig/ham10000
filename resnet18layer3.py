@@ -14,8 +14,8 @@ class ResNetLightning(pl.LightningModule):
         
         # Congelar as camadas até layer3
         for name, param in self.model.named_parameters():
-            # if "layer4" not in name:  # Congela até layer3
-            if "layer3" not in name and "layer4" not in name:  # Congela até layer2
+            if "layer4" not in name:  # Congela até layer3
+            #if "layer3" not in name and "layer4" not in name:  # Congela até layer2
                 param.requires_grad = False
 
         # Alterar para uso em classificação binária
